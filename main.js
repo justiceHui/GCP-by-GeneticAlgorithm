@@ -79,8 +79,6 @@ class GCP extends Graph{
 
         this.pool = new Array(this.genN);
         for(let i=0; i<this.genN; i++) this.pool[i] = new Array(this.vertex);
-
-        this.k = this.verties-1; // k-coloring
     }
 
     init_fillOnePool(t, k){ //t번째 유전자 초기화
