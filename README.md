@@ -1,7 +1,9 @@
 # GCP-by-GeneticAlgorithm
-선린인터넷고등학교 정올반 프로젝트 - 그래프 컬러링
+선린인터넷고등학교 정올반 프로젝트
+* 대주제 : 휴리스틱
+* 소주제 : 유전 알고리즘을 이용한 그래프 컬러링
 
-### class Graph
+#### class Graph
 * Method
     * constructor(JSON) : 인자로 들어오는 JSON을 기반으로 그래프 모델링
     * printAdjList() : 인접리스트 출력
@@ -12,7 +14,7 @@
     * vectex : 정점 개수
     * adj : 인접 리스트
 
-### class GCP extends Graph
+#### class GCP extends Graph
 * Method
     * constructor(JSON, N) : JSON 기반으로 그래프 모델링, 유전자 N개 사용
     * init(K) : K개의 색깔을 사용해 모든 유전자 초기화
