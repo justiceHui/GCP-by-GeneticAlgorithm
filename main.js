@@ -165,25 +165,28 @@ class GCP extends Graph{
             console.log(this.pool[i].join(" ") + " :: " + this.cost(this.pool[i]));
         }
     }
+
+    run(startColor, endColor, iter){
+        for(let i=startColor; i>=endColor; i--){
+            this.init(i);
+            let score;
+            for(let cnt=1; cnt<=iter; cnt++){
+                this.nextGen();
+                let bestGen = this.getBest();
+                score = this.cost(bestGen);
+                console.log("k = " + i + " :: cost = " + score + " :: color = " + bestGen.join(" "));
+                if(score === 0) break;
+            }
+            if(score !== 0) break;
+        }
+    }
 }
 
 function main(){
     let tmp = new GCP(tmpJson, 15000);
     tmp.printAdjList();
-    tmp.init(5);
-    //tmp.printPool();
 
-    let cnt = 0;
-    while(true){
-        cnt++;
-        tmp.nextGen();
-        let bestGen = tmp.getBest();
-        let score = tmp.cost(bestGen);
-        console.log(bestGen.join(" ") + " :: " + score);
-        if(score === 0) break;
-        if(cnt > 150) break;
-    }
-    //tmp.printPool();
+    tmp.run(14, 5, 150);
 }
 
 
