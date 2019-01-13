@@ -167,14 +167,14 @@ class GCP extends Graph{
     run(startColor, endColor, iter){
         for(let i=startColor; i>=endColor; i--){
             this.init(i);
-            let score;
+            let score, bestGen;
             for(let cnt=1; cnt<=iter; cnt++){
                 this.nextGen();
-                let bestGen = this.getBest();
+                bestGen = this.getBest();
                 score = this.cost(bestGen);
-                console.log("k = " + i + " :: cost = " + score + " :: color = " + bestGen.join(" "));
                 if(score === 0) break;
             }
+            console.log("k = " + i + " :: cost = " + score + " :: color = " + bestGen.join(" "));
             if(score !== 0) break;
         }
     }
