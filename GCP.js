@@ -55,7 +55,7 @@ function color(n){
     str[1] = arr1[parseInt(str[1], 16)];
     str[2] = arr2[parseInt(str[2], 16)];
     ret = "#" + str[0] + str[0] + str[1] + str[1] + str[2] + str[2];
-    console.log(ret);
+    //console.log(ret);
     return ret;
 }
 
