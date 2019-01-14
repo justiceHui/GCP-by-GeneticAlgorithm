@@ -25,20 +25,20 @@ let tmpJson = {
         {"source": 5, "target": 12},
         {"source": 6, "target": 13}],
     "nodes": [
-        {"size": 60, "score": 0, "id": "Androsynth", "type": "circle"},
-        {"size": 10, "score": 0.2, "id": "Chenjesu", "type": "circle"},
-        {"size": 60, "score": 0.4, "id": "Ilwrath", "type": "circle"},
-        {"size": 10, "score": 0.6, "id": "Mycon", "type": "circle"},
-        {"size": 60, "score": 0.8, "id": "Spathi", "type": "circle"},
-        {"size": 10, "score": 1, "id": "Umgah", "type": "circle"},
-        {"id": "VUX", "type": "circle"},
-        {"size": 60, "score": 0, "id": "Guardian", "type": "square"},
-        {"size": 10, "score": 0.2, "id": "Broodhmome", "type": "square"},
-        {"size": 60, "score": 0.4, "id": "Avenger", "type": "square"},
-        {"size": 10, "score": 0.6, "id": "Podship", "type": "square"},
-        {"size": 60, "score": 0.8, "id": "Eluder", "type": "square"},
-        {"size": 10, "score": 1, "id": "Drone", "type": "square"},
-        {"id": "Intruder", "type": "square"}],
+        {"size": 50, "id": "0", "type": "circle"},
+        {"size": 50, "id": "1", "type": "circle"},
+        {"size": 50, "id": "2", "type": "circle"},
+        {"size": 50, "id": "3", "type": "circle"},
+        {"size": 50, "id": "4", "type": "circle"},
+        {"size": 50, "id": "5", "type": "circle"},
+        {"size": 50, "id": "6", "type": "circle"},
+        {"size": 60, "id": "7", "type": "square"},
+        {"size": 10, "id": "8", "type": "square"},
+        {"size": 60, "id": "9", "type": "square"},
+        {"size": 10, "id": "10", "type": "square"},
+        {"size": 60, "id": "11", "type": "square"},
+        {"size": 10, "id": "12", "type": "square"},
+        {"size": 50, "id": "13", "type": "square"}],
     "directed": false,
     "multigraph": false
 };
@@ -143,6 +143,7 @@ class GCP extends Graph{
         }
         for(let i in newPool) newPool[i] = this.mutation(newPool[i]);
         this.pool = newPool;
+        return this.getLog(this.getBest());
     }
 
     getBest(){
@@ -164,7 +165,20 @@ class GCP extends Graph{
         }
     }
 
-    run(startColor, endColor, iter){
+    getLog(gen){
+        let ret = this.json;
+        for(let i=0; i<this.vertex; i++) ret.nodes[i].color = gen[i];
+        for(let i=0; i<ret.links.length; i++){
+            let a = parseInt(ret.links[i].source), b = parseInt(ret.links[i].target);
+            if(gen[a] === gen[b]) ret.links[i].color = "red";
+            else ret.links[i].color = "black";
+        }
+        ret.cost = this.cost(gen);
+        //console.log(ret);
+        return ret;
+    }
+
+    run_range(startColor, endColor, iter){
         for(let i=startColor; i>=endColor; i--){
             this.init(i);
             let score, bestGen;
@@ -178,14 +192,25 @@ class GCP extends Graph{
             if(score !== 0) break;
         }
     }
+
+    run(k, iter){
+        let log = new Array();
+        this.init(k);
+        let score, bestGen;
+        for(let cnt=1; cnt<=iter; cnt++){
+            this.nextGen();
+            bestGen = this.getBest();
+            score = this.cost(bestGen);
+            log.push(this.getLog(bestGen));
+            if(score === 0) break;
+        }
+        return log;
+    }
 }
 
-function main(){
-    let tmp = new GCP(tmpJson, 15000);
-    tmp.printAdjList();
 
-    tmp.run(14, 5, 150);
-}
+let tmp = new GCP(tmpJson, 6);
+tmp.printAdjList();
+tmp.init(3);
 
-
-main();
+//tmp.nextGen();
