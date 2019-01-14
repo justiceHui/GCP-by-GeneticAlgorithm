@@ -43,6 +43,22 @@ let tmpJson = {
     "multigraph": false
 };
 
+function color(n){
+    if(n > 16*16*16 || n < 0) return null;
+    let str = n.toString(16);
+    while(str.length < 3){
+        str = "0" + str;
+    }
+    let arr2 = ['f', 'e', 'd', 'c', 'b', 'a', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0'];
+    let arr1 = ['0', 'f', '1', 'e', '2', 'd', '3', 'c', '4', 'b', '5', 'a', '6', '9', '7', '8'];
+    let ret = "";
+    str[1] = arr1[parseInt(str[1], 16)];
+    str[2] = arr2[parseInt(str[2], 16)];
+    ret = "#" + str[0] + str[0] + str[1] + str[1] + str[2] + str[2];
+    console.log(ret);
+    return ret;
+}
+
 class Graph{
     constructor(json){
         this.json = json;
@@ -167,11 +183,11 @@ class GCP extends Graph{
 
     getLog(gen){
         let ret = this.json;
-        for(let i=0; i<this.vertex; i++) ret.nodes[i].color = gen[i];
+        for(let i=0; i<this.vertex; i++) ret.nodes[i].color = color((gen[i]*128)%(16*16*16));
         for(let i=0; i<ret.links.length; i++){
             let a = parseInt(ret.links[i].source), b = parseInt(ret.links[i].target);
-            if(gen[a] === gen[b]) ret.links[i].color = "red";
-            else ret.links[i].color = "black";
+            if(gen[a] === gen[b]) ret.links[i].color = "#ff0000";
+            else ret.links[i].color = "#000000";
         }
         ret.cost = this.cost(gen);
         //console.log(ret);
@@ -211,6 +227,6 @@ class GCP extends Graph{
 
 let tmp = new GCP(tmpJson, 6);
 tmp.printAdjList();
-tmp.init(3);
+tmp.init(10);
 
 //tmp.nextGen();
