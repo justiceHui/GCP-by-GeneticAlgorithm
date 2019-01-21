@@ -240,7 +240,8 @@
 
     let newGraph = makeGraph(50, 100);
     let tmp = new GCP(newGraph, 150);
-    tmp.init(Math.max(10, 50/2));
+    //tmp.init(Math.max(10, 50/2));
+    tmp.init(5);
 
 </script>
 <script>
@@ -316,7 +317,7 @@
             .enter().append("line")
             .attr("class", "link")
             .style("stroke-width", function() { return stroke_siz; })
-            .style("stroke", function(d) { return d.value === 0 ? "#F00" : "#888"; });
+            .style("stroke", function(d) { return d.value == 0 ? "#F00" : "#888"; });
 
         let node = svg.selectAll(".node")
             .data(graph.nodes)
@@ -370,7 +371,7 @@
             .enter().append("line")
             .attr("class", "link")
             .style("stroke-width", function() { return stroke_siz; })
-            .style("stroke", function(d) { return d.value === 0 ? "#F00" : "#888"; });
+            .style("stroke", function(d) { return d.value == 0 ? "#F00" : "#888"; });
 
         let node = svg.selectAll(".node")
             .data(graph.nodes)
