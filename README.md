@@ -30,3 +30,11 @@
     * genN : 유전자 개수
     * pool : 유전자 집합
     * k : 그래프를 색칠할 때 사용할 색깔의 개수 (k-coloring)
+    
+#### nextGen이 반환하는 json
+* links : 간선 배열
+    * source, target : 간선 시점, 종점
+    * value : 0-bad edge, 1-good edge
+* nodes : 정점 배열
+    * id : 정점 번호
+    * group : 색깔
