@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    body {
+        overflow: hidden;
+        margin: 0;
+    }
+
+    text {
+        font-family: sans-serif;
+        pointer-events: none;
+    }
+    button {
+        margin: 30px;
+        width: 7vw;
+        height: 30px;
+        font-family: '맑은 고딕';
+    }
+</style>
+
+<body>
+    <button onclick="nextGenButtonOnClick()">다음 세대</button>
+    <button onclick="startGen()">세대 gen start</button>
+    <button onclick="stopGen()">세대 gen stop</button>
+    <h1 id="gen">0</h1>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+        const $=a=>document.getElementById(a);
+        var tt=null;
+    let tmpJson = {
+            "graph": [],
+            "links": [
+                { "source": 0, "target": 1 },
+                { "source": 0, "target": 2 },
+                { "source": 0, "target": 3 },
+                { "source": 0, "target": 4 },
+                { "source": 0, "target": 5 },
+                { "source": 0, "target": 6 },
+                { "source": 1, "target": 3 },
+                { "source": 1, "target": 4 },
+                { "source": 1, "target": 5 },
+                { "source": 1, "target": 6 },
+                { "source": 2, "target": 4 },
+                { "source": 2, "target": 5 },
+                { "source": 2, "target": 6 },
+                { "source": 3, "target": 5 },
+                { "source": 3, "target": 6 },
+                { "source": 5, "target": 6 },
+                { "source": 0, "target": 7 },
+                { "source": 1, "target": 8 },
+                { "source": 2, "target": 9 },
+                { "source": 3, "target": 10 },
+                { "source": 4, "target": 11 },
+                { "source": 5, "target": 12 },
+                { "source": 6, "target": 13 }],
+            "nodes": [
+                { "id": "0" },
+                { "id": "1" },
+                { "id": "2" },
+                { "id": "3" },
+                { "id": "4" },
+                { "id": "5" },
+                { "id": "6" },
+                { "id": "7" },
+                { "id": "8" },
+                { "id": "9" },
+                { "id": "10" },
+                { "id": "11" },
+                { "id": "12" },
+                { "id": "13" }],
+            "directed": false,
+            "multigraph": false
+        };
+
+        class Graph {
+            constructor(json) {
+                this.json = json;
+                this.verties = json.nodes;
+                this.edges = json.links;
+                this.vertex = this.verties.length;
+                this.adj = new Array();
+
+                for (let i = 0; i < this.vertex; i++) {
+                    this.adj.push(new Array());
+                }
+                for (let i of this.edges) {
+                    let a = parseInt(i.source), b = parseInt(i.target);
+                    this.adj[a].push(b); this.adj[b].push(a);
+                }
+            }
+
+            printAdjList() {
+                for (let i in this.adj) {
+                    let str = "";
+                    str += i + " : ";
+                    let v = this.adj[i];
+                    for (let j of v) str += j + " ";
+                    console.log(str);
+                }
+            }
+        }
+
+        class GCP extends Graph {
+            constructor(graphJson, geneticN) {
+                super(graphJson);
+                this.genN = geneticN;
+                //this.color = new Array(this.vertex);
+
+                this.pool = new Array(this.genN);
+                for (let i = 0; i < this.genN; i++) this.pool[i] = new Array(this.vertex);
+            }
+
+            init_fillOnePool(t, k) { //t번째 유전자 초기화
+                for (let i = 0; i < k; i++) {
+                    this.pool[t][i] = i;
+                }
+                for (let i = k; i < this.vertex; i++) {
+                    this.pool[t][i] = Math.floor(Math.random() * k);
+                }
+                for (let i = 0; i < this.vertex / 2; i++) {
+                    let a = Math.floor(Math.random() * this.vertex);
+                    let b = Math.floor(Math.random() * this.vertex);
+                    let tmp = this.pool[t][a];
+                    this.pool[t][a] = this.pool[t][b];
+                    this.pool[t][b] = tmp;
+                }
+            }
+
+            init(k) {
+                this.k = k;
+                console.log("init...");
+                for (let i = 0; i < this.genN; i++) this.init_fillOnePool(i, k);
+            }
+
+            cost(gen) {
+                let ret = 0;
+                for (let i of this.edges) {
+                    let a = i.source.id, b = i.target.id;
+                    if (gen[a] === gen[b]) ret++;
+                }
+                return ret;
+            }
+
+            mutation(gen) {
+                for (let i in gen) {
+                    let bias = Math.random();
+                    if (bias <= 0.15) gen[i] = Math.floor(Math.random() * this.k);
+                }
+                return gen;
+            }
+
+            nextGen() {
+                console.log("nxtgen");
+                $("gen").innerText = parseInt($("gen").innerText)+1;
+                let newPool = new Array(this.vertex);
+                let idx = 0;
+                for (let i = 0; i < this.genN; i++) newPool[i] = new Array(this.vertex);
+                for (let i = 0; i < this.genN; i += 2) {
+                    if (this.cost(this.pool[i]) > this.cost(this.pool[i + 1])) {
+                        newPool[idx++] = this.pool[i + 1];
+                    } else newPool[idx++] = this.pool[i];
+                }
+
+                for (let i = 0; i < this.genN / 2; i++) {
+                    let tmp = new Array(this.vertex);
+                    let nxt = (i + 1) % (this.genN / 2);
+                    for (let j = 0; j < this.vertex; j++) {
+                        let rnd = Math.random();
+                        if (rnd < 0.5) tmp[j] = newPool[i][j];
+                        else tmp[j] = newPool[nxt][j];
+                    }
+                    newPool[idx++] = tmp;
+                }
+                for (let i in newPool) newPool[i] = this.mutation(newPool[i]);
+                this.pool = newPool;
+                let tmptmp = this.getLog(this.getBest());
+                console.log(tmptmp.cost);
+                return tmptmp;
+            }
+
+            getBest() {
+                let minScore = this.edges.length + 10;
+                let bestidx = -1;
+                for (let i = 0; i < this.genN; i++) {
+                    let c = this.cost(this.pool[i]);
+                    if (c < minScore) {
+                        minScore = c;
+                        bestidx = i;
+                    }
+                }
+                return this.pool[bestidx];
+            }
+
+            printPool() {
+                for (let i = 0; i < this.genN; i++) {
+                    console.log(this.pool[i].join(" ") + " :: " + this.cost(this.pool[i]));
+                }
+            }
+
+            getLog(gen) {
+                let ret = this.json;
+                for (let i = 0; i < this.vertex; i++) ret.nodes[i].group = gen[i];
+                for (let i = 0; i < ret.links.length; i++) {
+                    let a = ret.links[i].source.id, b = ret.links[i].target.id;
+                    if (gen[a] === gen[b]) ret.links[i].value = "0";
+                    else ret.links[i].value = "1";
+                }
+                ret.cost = this.cost(gen);
+                //console.log(ret);
+                return ret;
+            }
+
+            run_range(startColor, endColor, iter) {
+                for (let i = startColor; i >= endColor; i--) {
+                    this.init(i);
+                    let score, bestGen;
+                    for (let cnt = 1; cnt <= iter; cnt++) {
+                        this.nextGen();
+                        bestGen = this.getBest();
+                        score = this.cost(bestGen);
+                        if (score === 0) break;
+                    }
+                    console.log("k = " + i + " :: cost = " + score + " :: color = " + bestGen.join(" "));
+                    if (score !== 0) break;
+                }
+            }
+
+            run(k, iter) {
+                let log = new Array();
+                this.init(k);
+                let score, bestGen;
+                for (let cnt = 1; cnt <= iter; cnt++) {
+                    this.nextGen();
+                    bestGen = this.getBest();
+                    score = this.cost(bestGen);
+                    log.push(this.getLog(bestGen));
+                    if (score === 0) break;
+                }
+                return log;
+            }
+        }
+
+
+        let tmp = new GCP(tmpJson, 6);
+        tmp.init(6);
+
+    </script>
+    <script>    
+    var width = 1080,
+        height = 500;
+    var linkDis = 110;
+    var siz = 9;
+    var stroke_siz = 5;
+    var color = d3.scale.category20();
+    
+    graphInit();
+    
+    function graphInit() {
+        graph = {
+            "graph": [],
+            "links": [
+                { "source": 0, "target": 1 },
+                { "source": 0, "target": 2 },
+                { "source": 0, "target": 3 },
+                { "source": 0, "target": 4 },
+                { "source": 0, "target": 5 },
+                { "source": 0, "target": 6 },
+                { "source": 1, "target": 3 },
+                { "source": 1, "target": 4 },
+                { "source": 1, "target": 5 },
+                { "source": 1, "target": 6 },
+                { "source": 2, "target": 4 },
+                { "source": 2, "target": 5 },
+                { "source": 2, "target": 6 },
+                { "source": 3, "target": 5 },
+                { "source": 3, "target": 6 },
+                { "source": 5, "target": 6 },
+                { "source": 0, "target": 7 },
+                { "source": 1, "target": 8 },
+                { "source": 2, "target": 9 },
+                { "source": 3, "target": 10 },
+                { "source": 4, "target": 11 },
+                { "source": 5, "target": 12 },
+                { "source": 6, "target": 13 }],
+            "nodes": [
+                { "id": "0" },
+                { "id": "1" },
+                { "id": "2" },
+                { "id": "3" },
+                { "id": "4" },
+                { "id": "5" },
+                { "id": "6" },
+                { "id": "7" },
+                { "id": "8" },
+                { "id": "9" },
+                { "id": "10" },
+                { "id": "11" },
+                { "id": "12" },
+                { "id": "13" }],
+            "directed": false,
+            "multigraph": false
+        };
+        var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        var force = d3.layout.force()
+            .charge(-120)
+            .linkDistance(linkDis)
+            .size([width, height])
+            .nodes(graph.nodes)
+            .links(graph.links)
+            .start();
+
+        
+        var link = svg.selectAll(".link")
+            .data(graph.links)
+            .enter().append("line")
+            .attr("class", "link")
+            .style("stroke-width", function(d) { return stroke_siz; })
+            .style("stroke", function(d) { return d.value == 0 ? "#F00" : "#888"; });
+
+        var node = svg.selectAll(".node")
+            .data(graph.nodes)
+            .enter().append("circle")
+            .attr("class", "node")
+            .attr("r", siz)
+            .style("fill", function(d) { return color(d.group); })
+            .call(force.drag);
+
+        node.append("title")
+            .text(function(d) { return d.id; });
+
+        force.on("tick", function() {
+            link.attr("x1", function(d) { return d.source.x; })
+                .attr("y1", function(d) { return d.source.y; })
+                .attr("x2", function(d) { return d.target.x; })
+                .attr("y2", function(d) { return d.target.y; });
+
+            node.attr("cx", function(d) { return d.x; })
+                .attr("cy", function(d) { return d.y; });
+        });
+    }
+    
+function startGen(){
+    if(tt==null) tt=setInterval(nextGenButtonOnClick,500);
+}
+function stopGen(){
+    clearInterval(tt);tt=null;
+}
+
+    function nextGenButtonOnClick() {
+        var graph = tmp.nextGen();
+        d3.select("svg").selectAll("*").remove();
+        d3.select("svg").remove();
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        var force = d3.layout.force()
+            .charge(-120)
+            .linkDistance(linkDis)
+            .size([width, height])
+            .nodes(graph.nodes)
+            .links(graph.links)
+            .start();
+
+        
+        var link = svg.selectAll(".link")
+            .data(graph.links)
+            .enter().append("line")
+            .attr("class", "link")
+            .style("stroke-width", function(d) { return stroke_siz; })
+            .style("stroke", function(d) { return d.value == 0 ? "#F00" : "#888"; });
+
+        var node = svg.selectAll(".node")
+            .data(graph.nodes)
+            .enter().append("circle")
+            .attr("class", "node")
+            .attr("r", siz)
+            .style("fill", function(d) { return color(d.group); })
+            .call(force.drag);
+
+        node.append("title")
+            .text(function(d) { return d.id; });
+
+        force.on("tick", function() {
+            link.attr("x1", function(d) { return d.source.x; })
+                .attr("y1", function(d) { return d.source.y; })
+                .attr("x2", function(d) { return d.target.x; })
+                .attr("y2", function(d) { return d.target.y; });
+
+            node.attr("cx", function(d) { return d.x; })
+                .attr("cy", function(d) { return d.y; });
+        });
+    }
+    </script>
+</body>
