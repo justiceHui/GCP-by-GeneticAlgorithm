@@ -26,8 +26,7 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
     const $=a=>document.getElementById(a);
-    var tt=null;
-    let rndJson = {};
+    let tt=null;
     let tmpJson = {
         "graph": [],
         "links": [
@@ -79,24 +78,14 @@
             this.verties = json.nodes;
             this.edges = json.links;
             this.vertex = this.verties.length;
-            this.adj = new Array();
+            this.adj = [];
 
             for (let i = 0; i < this.vertex; i++) {
-                this.adj.push(new Array());
+                this.adj.push([]);
             }
             for (let i of this.edges) {
                 let a = parseInt(i.source), b = parseInt(i.target);
                 this.adj[a].push(b); this.adj[b].push(a);
-            }
-        }
-
-        printAdjList() {
-            for (let i in this.adj) {
-                let str = "";
-                str += i + " : ";
-                let v = this.adj[i];
-                for (let j of v) str += j + " ";
-                console.log(str);
             }
         }
     }
@@ -146,7 +135,7 @@
         mutation(gen, per) {
             for (let i in gen) {
                 let bias = Math.random();
-                if (bias <= per) gen[i] = Math.floor(Math.random() * this.k);
+                if (bias <= per) if(gen.hasOwnProperty(i)) gen[i] = Math.floor(Math.random() * this.k);
             }
             return gen;
         }
@@ -201,12 +190,6 @@
             return this.pool[bestidx];
         }
 
-        printPool() {
-            for (let i = 0; i < this.genN; i++) {
-                console.log(this.pool[i].join(" ") + " :: " + this.cost(this.pool[i]));
-            }
-        }
-
         getLog(gen) {
             let ret = this.json;
             for (let i = 0; i < this.vertex; i++) ret.nodes[i].group = gen[i];
@@ -216,7 +199,6 @@
                 else ret.links[i].value = "1";
             }
             ret.cost = this.cost(gen);
-            //console.log(ret);
             return ret;
         }
     }
@@ -247,7 +229,7 @@
                 }
                 let flag = false;
                 for(let j of newGraph.links){
-                    if(i.source === a && i.target === b) flag = true;
+                    if(j.source === a && j.target === b) flag = true;
                 }
                 if(!flag) break;
             }
@@ -257,18 +239,18 @@
     }
 
     let newGraph = makeGraph(50, 100);
-    let tmp = new GCP(newGraph, 6);
+    let tmp = new GCP(newGraph, 150);
     tmp.init(Math.max(10, 50/2));
 
 </script>
 <script>
-    var width = 1080,
+    const width = 1080,
         height = 500;
-    var linkDis = 200;
-    var siz = 9;
-    var stroke_siz = 5;
-    var color = d3.scale.category20();
-
+    const linkDis = 200;
+    const siz = 9;
+    const stroke_siz = 5;
+    const color = d3.scale.category20();
+    let graph;
     graphInit();
 
     function graphInit() {
@@ -316,11 +298,11 @@
             "directed": false,
             "multigraph": false
         };
-        var svg = d3.select("body").append("svg")
+        let svg = d3.select("body").append("svg")
             .attr("width", width)
             .attr("height", height);
 
-        var force = d3.layout.force()
+        let force = d3.layout.force()
             .charge(-120)
             .linkDistance(linkDis)
             .size([width, height])
@@ -329,14 +311,14 @@
             .start();
 
 
-        var link = svg.selectAll(".link")
+        let link = svg.selectAll(".link")
             .data(graph.links)
             .enter().append("line")
             .attr("class", "link")
-            .style("stroke-width", function(d) { return stroke_siz; })
-            .style("stroke", function(d) { return d.value == 0 ? "#F00" : "#888"; });
+            .style("stroke-width", function() { return stroke_siz; })
+            .style("stroke", function(d) { return d.value === 0 ? "#F00" : "#888"; });
 
-        var node = svg.selectAll(".node")
+        let node = svg.selectAll(".node")
             .data(graph.nodes)
             .enter().append("circle")
             .attr("class", "node")
@@ -366,15 +348,15 @@
     }
 
     function nextGenButtonOnClick() {
-        var graph = tmp.nextGen();
+        let graph = tmp.nextGen();
         d3.select("svg").selectAll("*").remove();
         d3.select("svg").remove();
 
-        var svg = d3.select("body").append("svg")
+        let svg = d3.select("body").append("svg")
             .attr("width", width)
             .attr("height", height);
 
-        var force = d3.layout.force()
+        let force = d3.layout.force()
             .charge(-120)
             .linkDistance(linkDis)
             .size([width, height])
@@ -383,14 +365,14 @@
             .start();
 
 
-        var link = svg.selectAll(".link")
+        let link = svg.selectAll(".link")
             .data(graph.links)
             .enter().append("line")
             .attr("class", "link")
-            .style("stroke-width", function(d) { return stroke_siz; })
-            .style("stroke", function(d) { return d.value == 0 ? "#F00" : "#888"; });
+            .style("stroke-width", function() { return stroke_siz; })
+            .style("stroke", function(d) { return d.value === 0 ? "#F00" : "#888"; });
 
-        var node = svg.selectAll(".node")
+        let node = svg.selectAll(".node")
             .data(graph.nodes)
             .enter().append("circle")
             .attr("class", "node")
