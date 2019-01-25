@@ -134,13 +134,16 @@
 
         mutation(gen, per) {
             for (let i in gen) {
-                let bias = Math.random();
+                let bias = Math.random()*100;
                 if (bias <= per) if(gen.hasOwnProperty(i)) gen[i] = Math.floor(Math.random() * this.k);
             }
             return gen;
         }
 
         nextGen() {
+            if(this.k === 2 || this.k === '2'){
+                return this.getLog(this.getBest());
+            }
             this.genCnt++;
             let newPool = new Array(this.vertex);
             let idx = 0;
@@ -162,18 +165,17 @@
                 newPool[idx++] = tmp;
             }
             for (let i=0; i<this.genN; i++){
-                if(i < this.genN) newPool[i] = this.mutation(newPool[i], 0.01);
-                else newPool[i] = this.mutation(newPool[i], 0.15);
+                newPool[i] = this.mutation(newPool[i], 0.15);
             }
             this.pool = newPool;
             let tmptmp = this.getLog(this.getBest());
             $("gen").innerText = "gen : " + this.genCnt + ", cost : " + tmptmp.cost + " k : " + this.k;
 
             let v = this.json.nodes.length, e = this.json.links.length;
-            if(tmptmp.cost === 0 || this.genCnt > Math.max(Math.max(v*v, v*e), 500)){
+            if(tmptmp.cost === 0 || (this.genCnt > Math.max(Math.max(v*v, v*e), 500))){
                 this.init(this.k-1);
             }
-
+            console.log(tmptmp.cost);
             return tmptmp;
         }
 
@@ -238,18 +240,19 @@
         return newGraph;
     }
 
-    let newGraph = makeGraph(50, 100);
-    let tmp = new GCP(newGraph, 150);
-    //tmp.init(Math.max(10, 50/2));
-    tmp.init(5);
+    let v = 20, e = 40;
+    let newGraph = makeGraph(v, e);
+    let tmp = new GCP(newGraph, 300);
+    //tmp.init(Math.max(10, v/2));
+    tmp.init(6);
 
 </script>
 <script>
-    const width = 1080,
+    const width = 1500,
         height = 500;
-    const linkDis = 200;
-    const siz = 9;
-    const stroke_siz = 5;
+    const linkDis = 250;
+    const siz = 6;
+    const stroke_siz = 3;
     const color = d3.scale.category20();
     let graph;
     graphInit();
