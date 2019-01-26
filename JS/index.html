@@ -27,50 +27,6 @@
 <script>
     const $=a=>document.getElementById(a);
     let tt=null;
-    let tmpJson = {
-        "graph": [],
-        "links": [
-            { "source": 0, "target": 1 },
-            { "source": 0, "target": 2 },
-            { "source": 0, "target": 3 },
-            { "source": 0, "target": 4 },
-            { "source": 0, "target": 5 },
-            { "source": 0, "target": 6 },
-            { "source": 1, "target": 3 },
-            { "source": 1, "target": 4 },
-            { "source": 1, "target": 5 },
-            { "source": 1, "target": 6 },
-            { "source": 2, "target": 4 },
-            { "source": 2, "target": 5 },
-            { "source": 2, "target": 6 },
-            { "source": 3, "target": 5 },
-            { "source": 3, "target": 6 },
-            { "source": 5, "target": 6 },
-            { "source": 0, "target": 7 },
-            { "source": 1, "target": 8 },
-            { "source": 2, "target": 9 },
-            { "source": 3, "target": 10 },
-            { "source": 4, "target": 11 },
-            { "source": 5, "target": 12 },
-            { "source": 6, "target": 13 }],
-        "nodes": [
-            { "id": "0" },
-            { "id": "1" },
-            { "id": "2" },
-            { "id": "3" },
-            { "id": "4" },
-            { "id": "5" },
-            { "id": "6" },
-            { "id": "7" },
-            { "id": "8" },
-            { "id": "9" },
-            { "id": "10" },
-            { "id": "11" },
-            { "id": "12" },
-            { "id": "13" }],
-        "directed": false,
-        "multigraph": false
-    };
 
     class Graph {
         constructor(json) {
@@ -87,6 +43,15 @@
                 let a = parseInt(i.source), b = parseInt(i.target);
                 this.adj[a].push(b); this.adj[b].push(a);
             }
+        }
+
+        getMaxDegree(){
+            let ret = 0;
+            for(let i=0; i<v; i++){
+                ret = Math.max(ret, this.adj[i].length);
+                console.log(this.adj[i].length);
+            }
+            return ret;
         }
     }
 
@@ -155,8 +120,8 @@
             }
 
             for (let i = 0; i < this.genN / 2; i++) {
-                let tmp = new Array(this.vertex);
-                let nxt = (i + 1) % (this.genN / 2);
+                    let tmp = new Array(this.vertex);
+                    let nxt = (i + 1) % (this.genN / 2);
                 for (let j = 0; j < this.vertex; j++) {
                     let rnd = Math.random();
                     if (rnd < 0.5) tmp[j] = newPool[i][j];
@@ -240,11 +205,14 @@
         return newGraph;
     }
 
-    let v = 20, e = 40;
+    /*let v = 200, e = 400;
     let newGraph = makeGraph(v, e);
     let tmp = new GCP(newGraph, 300);
-    //tmp.init(Math.max(10, v/2));
-    tmp.init(6);
+    tmp.init(Math.max(10, v/2));*/
+
+    let v = 20, e = 40;
+    let tmp = new GCP(makeGraph(v, e), 500);
+    tmp.init(tmp.getMaxDegree()+1);
 
 </script>
 <script>
