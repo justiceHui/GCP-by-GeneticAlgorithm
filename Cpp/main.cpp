@@ -61,6 +61,28 @@ void mutation(int gen){
 	}
 }
 
+void localOptimize(int gen){
+	queue<int> q;
+	vector<int> visit(v), adjColor, canColor;
+	int now = rand()%v;
+	q.push(now); visit[now] = 1;
+	while(!q.empty()){
+		now = q.front(); q.pop();
+		adjColor.clear(), canColor.clear();
+		for(int i=0; i<k; i++) canColor.push_back(i);
+		for(auto u : g[now]){
+			adjColor.push_back(newPool[gen][u]);
+			if(!visit[u]) q.push(u), visit[u] = 1;
+		}
+		for(auto i : adjColor){
+			auto it = find(canColor.begin(), canColor.end(), i);
+			if(it != canColor.end()) canColor.erase(it);
+		}
+		if(canColor.size())
+			newPool[gen][now] = canColor[ rand()%canColor.size() ];
+	}
+}
+
 int bestCost(){
 	int ret = 1 << 20;
 	for(int i=0; i<genN; i++){
@@ -95,6 +117,7 @@ int nextGen(){
 	}
 	for(i=0; i<genN; i++){
 		mutation(i);
+		localOptimize(i);
 	}
 	memcpy(pool, newPool, sizeof(pool));
 	return bestCost();
@@ -108,9 +131,10 @@ int getMaxDegree(){
 
 int main(){
 	FILE *in = freopen("graph.txt", "r", stdin);
-	FILE *out = freopen("output01.txt", "w", stdout);
+	FILE *out = freopen("output02.txt", "w", stdout);
 	makeGraph();
 	srand(time(NULL));
+	printf("asdf");
 	init();
 	printf("%d\n", time(NULL));
 	
@@ -118,6 +142,7 @@ int main(){
 	int now;
 	for(i=1; i<=limit; i++){
 		now = nextGen();
+		if(i%1000 == 0) printf("%d %d\n", i, now);
 		res[i] = now;
 		if(!now) break;
 	}
