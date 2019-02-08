@@ -11,7 +11,7 @@
         pointer-events: none;
     }
     button {
-        margin: 30px;
+        margin: 10px;
         width: 7vw;
         height: 30px;
         font-family: '맑은 고딕';
@@ -22,7 +22,7 @@
 <button onclick="nextGenButtonOnClick()">다음 세대</button>
 <button onclick="startGen()">세대 gen start</button>
 <button onclick="stopGen()">세대 gen stop</button>
-<h1 id="gen">gen : , cost : , k : </h1>
+<h2 id="gen">gen : , cost : , k : </h2>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
     const $=a=>document.getElementById(a);
@@ -60,7 +60,7 @@
             super(graphJson);
             this.genN = geneticN;
             //this.color = new Array(this.vertex);
-
+            this.flag = 0;
             this.pool = new Array(this.genN);
             for (let i = 0; i < this.genN; i++) this.pool[i] = new Array(this.vertex);
         }
@@ -106,6 +106,10 @@
         }
 
         nextGen() {
+            if(this.flag){
+                this.flag = 0;
+                alert(`최적해 발견 k = ${this.k+1}`);
+            }
             if(this.k === 2 || this.k === '2'){
                 return this.getLog(this.getBest());
             }
@@ -137,8 +141,9 @@
             $("gen").innerText = "gen : " + this.genCnt + ", cost : " + tmptmp.cost + " k : " + this.k;
 
             let v = this.json.nodes.length, e = this.json.links.length;
-            if(tmptmp.cost === 0 || (this.genCnt > Math.max(Math.max(v*v, v*e), 500))){
-                this.init(this.k-1);
+            if(tmptmp.cost === 0){
+                tmp.init(tmp.k - 1);
+                this.flag = 1;
             }
             console.log(tmptmp.cost);
             return tmptmp;
@@ -210,66 +215,27 @@
     let tmp = new GCP(newGraph, 300);
     tmp.init(Math.max(10, v/2));*/
 
-    let v = 20, e = 40;
+    let v = 75, e = 150;
     let tmp = new GCP(makeGraph(v, e), 500);
     tmp.init(tmp.getMaxDegree()+1);
 
 </script>
 <script>
     const width = 1500,
-        height = 500;
-    const linkDis = 250;
-    const siz = 6;
-    const stroke_siz = 3;
+        height = 750;
+    const linkDis = 175;
+    const siz = 12;
+    const stroke_siz = 4.5;
     const color = d3.scale.category20();
     let graph;
     graphInit();
-
+    function colores_google(n) {
+        var colores_g = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
+        return colores_g[n % colores_g.length];
+    }
     function graphInit() {
-        graph = {
-            "graph": [],
-            "links": [
-                { "source": 0, "target": 1 },
-                { "source": 0, "target": 2 },
-                { "source": 0, "target": 3 },
-                { "source": 0, "target": 4 },
-                { "source": 0, "target": 5 },
-                { "source": 0, "target": 6 },
-                { "source": 1, "target": 3 },
-                { "source": 1, "target": 4 },
-                { "source": 1, "target": 5 },
-                { "source": 1, "target": 6 },
-                { "source": 2, "target": 4 },
-                { "source": 2, "target": 5 },
-                { "source": 2, "target": 6 },
-                { "source": 3, "target": 5 },
-                { "source": 3, "target": 6 },
-                { "source": 5, "target": 6 },
-                { "source": 0, "target": 7 },
-                { "source": 1, "target": 8 },
-                { "source": 2, "target": 9 },
-                { "source": 3, "target": 10 },
-                { "source": 4, "target": 11 },
-                { "source": 5, "target": 12 },
-                { "source": 6, "target": 13 }],
-            "nodes": [
-                { "id": "0" },
-                { "id": "1" },
-                { "id": "2" },
-                { "id": "3" },
-                { "id": "4" },
-                { "id": "5" },
-                { "id": "6" },
-                { "id": "7" },
-                { "id": "8" },
-                { "id": "9" },
-                { "id": "10" },
-                { "id": "11" },
-                { "id": "12" },
-                { "id": "13" }],
-            "directed": false,
-            "multigraph": false
-        };
+        graph = tmp.json;
+
         let svg = d3.select("body").append("svg")
             .attr("width", width)
             .attr("height", height);
@@ -328,6 +294,7 @@
             .attr("width", width)
             .attr("height", height);
 
+
         let force = d3.layout.force()
             .charge(-120)
             .linkDistance(linkDis)
@@ -349,7 +316,7 @@
             .enter().append("circle")
             .attr("class", "node")
             .attr("r", siz)
-            .style("fill", function(d) { return color(d.group); })
+            .style("fill", function(d) { return colores_google(d.group); })
             .call(force.drag);
 
         node.append("title")
